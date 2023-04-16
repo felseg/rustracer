@@ -1,4 +1,7 @@
-use std::ops::{self};
+use std::{
+    fmt,
+    ops::{self},
+};
 
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub struct Vec3 {
@@ -16,7 +19,6 @@ impl Vec3 {
     }
 }
 
-//todo add tests
 pub fn cross(a: &Vec3, b: &Vec3) -> Vec3 {
     Vec3 {
         x: a.y * b.z - a.z * b.y,
@@ -25,17 +27,18 @@ pub fn cross(a: &Vec3, b: &Vec3) -> Vec3 {
     }
 }
 
-//todo add tests
-pub fn dot(a: &Vec3, b: &Vec3) -> Vec3 {
-    Vec3 {
-        x: a.x * b.x,
-        y: a.y * b.x,
-        z: a.z * b.z,
-    }
+pub fn dot(a: &Vec3, b: &Vec3) -> f64 {
+    a.x * b.x + a.y * b.y + a.z * b.z
 }
 
 pub fn unit_vector(vec: &Vec3) -> Vec3 {
     *vec / vec.length()
+}
+
+impl fmt::Display for Vec3 {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(f, "Vector:\n x:{} y:{} z:{}", self.x, self.y, self.z)
+    }
 }
 
 impl ops::Add<Vec3> for Vec3 {
@@ -198,6 +201,27 @@ mod vec3_tests {
             y: 1.,
             z: 1.,
         }
+    }
+
+    #[test]
+    fn test_dot() {
+        let a = basic_vec();
+        let b = basic_vec();
+        assert_eq!(dot(&a, &b), 12.);
+    }
+
+    #[test]
+    fn test_cross() {
+        let a = basic_vec();
+        let b = basic_vec();
+        assert_eq!(
+            cross(&a, &b),
+            Vec3 {
+                x: 0.,
+                y: 0.,
+                z: 0.
+            }
+        );
     }
 
     #[test]
