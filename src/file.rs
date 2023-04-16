@@ -43,6 +43,7 @@ pub fn write_test_image() {
     }
 }
 
+#[allow(unused)]
 #[allow(unused_must_use)]
 pub fn write_image(width: usize, height: usize) {
     unimplemented!("missing image content");
