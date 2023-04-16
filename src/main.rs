@@ -88,7 +88,7 @@ fn main() {
 
     let viewport_height = 2.;
     let viewport_width = aspect_ratio * viewport_height;
-    let focal_length = 1.;
+    let focal_length = 0.5;
 
     let origin = Vec3 {
         x: 0.,
