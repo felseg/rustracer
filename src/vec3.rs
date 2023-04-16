@@ -2,9 +2,9 @@ use std::ops::{self};
 
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub struct Vec3 {
-    x: f64,
-    y: f64,
-    z: f64,
+    pub x: f64,
+    pub y: f64,
+    pub z: f64,
 }
 
 impl Vec3 {
@@ -16,6 +16,7 @@ impl Vec3 {
     }
 }
 
+//todo add tests
 pub fn cross(a: &Vec3, b: &Vec3) -> Vec3 {
     Vec3 {
         x: a.y * b.z - a.z * b.y,
@@ -24,12 +25,17 @@ pub fn cross(a: &Vec3, b: &Vec3) -> Vec3 {
     }
 }
 
+//todo add tests
 pub fn dot(a: &Vec3, b: &Vec3) -> Vec3 {
     Vec3 {
         x: a.x * b.x,
         y: a.y * b.x,
         z: a.z * b.z,
     }
+}
+
+pub fn unit_vector(vec: &Vec3) -> Vec3 {
+    *vec / vec.length()
 }
 
 impl ops::Add<Vec3> for Vec3 {
