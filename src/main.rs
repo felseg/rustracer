@@ -17,47 +17,56 @@ fn create_file(filename: &str) -> File {
 }
 
 fn ray_color(ray: &Ray) -> Vec3 {
-    // if hit_sphere(
-    //     &Vec3 {
-    //         x: 0.,
-    //         y: 0.,
-    //         z: 0.,
-    //     },
-    //     0.5,
-    //     ray,
-    // ) {
-    //     return Vec3 {
-    //         x: 1.,
-    //         y: 0.,
-    //         z: 0.,
-    //     };
-    // }
-
+    let t = hit_sphere(
+        &Vec3 {
+            x: 0.,
+            y: 0.,
+            z: -1.,
+        },
+        0.5,
+        ray,
+    );
+    if t > 0. {
+        let n = unit_vector(
+            &(ray.at(t)
+                - Vec3 {
+                    x: 0.,
+                    y: 0.,
+                    z: -1.,
+                }),
+        );
+        return 0.5
+            * Vec3 {
+                x: n.x + 1.,
+                y: n.y + 1.,
+                z: n.z + 1.,
+            };
+    }
     let unit_direction = unit_vector(&ray.dir);
     let t = 0.5 * (unit_direction.y + 1.);
     (1. - t)
         * Vec3 {
-            x: 0.,
-            y: 1.,
+            x: 1.,
+            y: 0.,
             z: 1.,
         }
-        + (t * Vec3 {
-            x: 0.5,
+        + t * Vec3 {
+            x: 1.,
             y: 0.7,
             z: 0.3,
-        })
+        }
 }
 
-fn hit_sphere(center: &Vec3, radius: f64, ray: &Ray) -> bool {
+fn hit_sphere(center: &Vec3, radius: f64, ray: &Ray) -> f64 {
     let oc = ray.origin - *center;
     let a = dot(&ray.dir, &ray.dir);
     let b = 2.0 * dot(&oc, &ray.dir);
     let c = dot(&oc, &oc) - radius * radius;
-    let discrimninant = b * b - 4. * a * c;
-    if discrimninant > 0. {
-        true
+    let discriminant = b * b - 4. * a * c;
+    if discriminant < 0. {
+        -1.
     } else {
-        false
+        (-b - f64::sqrt(discriminant)) / (2.0 * a)
     }
 }
 
@@ -79,16 +88,16 @@ fn write_header(width: i32, height: i32, out: &mut File) {
 
 fn main() {
     let aspect_ratio = 16. / 9.;
-    let width = 400;
-    let height = (width as f64 / aspect_ratio) as i32;
+    let image_width = 400;
+    let image_height = (image_width as f64 / aspect_ratio) as i32;
 
     let mut file = create_file("out.ppm");
 
-    write_header(width, height, &mut file);
+    write_header(image_width, image_height, &mut file);
 
     let viewport_height = 2.;
     let viewport_width = aspect_ratio * viewport_height;
-    let focal_length = 0.5;
+    let focal_length = 1.;
 
     let origin = Vec3 {
         x: 0.,
@@ -119,13 +128,15 @@ fn main() {
 
     //Render
 
-    for j in (0..width).rev() {
-        for i in 0..height {
-            let u = i as f64 / (width - 1) as f64;
-            let v = j as f64 / (height - 1) as f64;
+    for j in (0..image_height).rev() {
+        for i in 0..image_width {
+            let u = i as f64 / (image_width - 1) as f64;
+            let v = j as f64 / (image_height - 1) as f64;
+            let dir = lower_left_corner + u * horizontal + v * vertical;
+
             let r = Ray {
                 origin,
-                dir: lower_left_corner + (u * horizontal) + (v * vertical) - origin,
+                dir: lower_left_corner + u * horizontal + v * vertical,
             };
 
             let color = ray_color(&r);

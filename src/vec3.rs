@@ -110,7 +110,6 @@ impl ops::Mul<Vec3> for f64 {
 }
 
 impl ops::MulAssign<f64> for Vec3 {
-    #[inline]
     fn mul_assign(&mut self, f: f64) {
         self.x *= f;
         self.y *= f;
@@ -280,6 +279,11 @@ mod vec3_tests {
         assert_eq!(a, basic_result());
     }
 
+    #[test]
+    fn test_mul_symmetric() {
+        let a = basic_vec();
+        assert_eq!(2. * a, a * 2.);
+    }
     #[test]
     fn test_neg() {
         let a = basic_vec();

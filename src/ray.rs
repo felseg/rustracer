@@ -18,8 +18,8 @@ impl fmt::Display for Ray {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         writeln!(
             f,
-            "Ray Origin:\n x:{} y:{} z:{}\nRay Direction:\n x:{} y:{} z:{} ",
-            self.origin.x, self.origin.y, self.origin.z, self.dir.x, self.dir.y, self.dir.z
+            "Ray Origin:\n {} \nRay Direction:\n {}",
+            self.origin, self.dir
         )
     }
 }
