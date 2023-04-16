@@ -1,4 +1,6 @@
 mod file;
+mod ray;
+mod utils;
 mod vec3;
 
 #[allow(unused)]

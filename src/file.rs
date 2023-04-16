@@ -1,23 +1,14 @@
 use std::fs::File;
 use std::io::prelude::*;
 
+use crate::vec3::Vec3;
+
 fn create_file(filename: &str) -> File {
     match File::create(filename) {
         Ok(file) => return file,
         Err(_) => panic!("failed to create file"),
     };
 }
-
-// pub fn write_image(width: usize, height: usize, image: Vec<Vec<u8>>) {
-//     unimplemented!();
-
-//     let mut file = match File::create("out") {
-//         Ok(it) => it,
-//         Err(err) => panic!("failed to create file"),
-//     };
-
-//     file.write(b"test");
-// }
 
 #[allow(unused_must_use)]
 pub fn write_test_image() {
@@ -45,8 +36,7 @@ pub fn write_test_image() {
 
 #[allow(unused)]
 #[allow(unused_must_use)]
-pub fn write_image(width: usize, height: usize) {
-    unimplemented!("missing image content");
+pub fn write_image(width: usize, height: usize, image: Vec<Vec<Vec3>>) {
     let mut file = create_file("out.ppm");
 
     write!(file, "P3\n{} {}\n255\n", width, height);
