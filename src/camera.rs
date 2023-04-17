@@ -22,7 +22,7 @@ impl Camera {
         let viewport_width = aspect_ratio * viewport_height;
         let focal_length = 1.;
 
-        let origin = Vec3(0., 0., 0.);
+        let origin = Vec3(0., 0., 0.95);
         let horizontal = Vec3(viewport_width, 0., 0.);
         let vertical = Vec3(0., viewport_height, 0.);
         let lower_left_corner =

@@ -54,7 +54,7 @@ fn ray_color(ray: &Ray, world: &mut dyn Hittable, depth: i32) -> Vec3 {
 
     let unit_direction = unit_vector(&ray.dir);
     let t = 0.5 * (unit_direction.1 + 1.);
-    (1. - t) * Vec3(1., 1., 1.) + t * Vec3(0.5, 0.7, 1.0)
+    (1. - t) * Vec3(1., 1., 1.) + t * Vec3(0.1, 0.4, 1.0)
 }
 
 fn write_color(vec: &Vec3, out: &mut File, samples_per_pixel: i32) {
@@ -91,10 +91,10 @@ fn main() {
 
     //Image
     let aspect_ratio = 16. / 9.;
-    let image_width = 1200;
+    let image_width = 1920;
     let image_height = (image_width as f64 / aspect_ratio) as i32;
-    let samples_per_pixel = 32;
-    let max_depth = 16;
+    let samples_per_pixel = 50;
+    let max_depth = 20;
 
     write_header(image_width, image_height, &mut file);
 
@@ -103,22 +103,47 @@ fn main() {
     world.list.push(Box::new(Sphere {
         center: Vec3(0., -100.5, -1.),
         radius: 100.,
-        material: materials::Material::Lambertian(0.1, 0.7, 0.0),
+        material: materials::Material::Metal(0.8, 0.8, 0.8, 0.05),
     }));
     world.list.push(Box::new(Sphere {
-        center: Vec3(0.5, 0., -1.),
+        center: Vec3(0.9, 0., -1.),
         radius: 0.5,
-        material: materials::Material::Metal(0.8, 0.8, 0.8, 0.0),
+        material: materials::Material::Metal(1., 1., 1., 0.0),
+    }));
+    // world.list.push(Box::new(Sphere {
+    //     center: Vec3(-1., 0., -2.),
+    //     radius: -0.4,
+    //     material: materials::Material::Lambertian(1., 0.2, 1.),
+    // }));
+    world.list.push(Box::new(Sphere {
+        center: Vec3(-0.9, 0., -1.),
+        radius: -0.5,
+        material: materials::Material::Dielectric(2.2),
     }));
     world.list.push(Box::new(Sphere {
-        center: Vec3(-0.5, 0., -1.),
-        radius: 0.5,
-        material: materials::Material::Metal(0.0, 0.5, 1.0, 0.5),
+        center: Vec3(0., -0.25, -0.25),
+        radius: 0.25,
+        material: materials::Material::Lambertian(0.94, 0.81, 0.66),
     }));
     world.list.push(Box::new(Sphere {
-        center: Vec3(0., -0.4, -0.2),
+        center: Vec3(1.25, -0.25, -0.25),
+        radius: 0.25,
+        material: materials::Material::Lambertian(0.6, 0.76, 0.73),
+    }));
+    world.list.push(Box::new(Sphere {
+        center: Vec3(-1.25, -0.25, -0.25),
+        radius: 0.25,
+        material: materials::Material::Lambertian(0.84, 0.55, 0.8),
+    }));
+    world.list.push(Box::new(Sphere {
+        center: Vec3(-0.25, -0.25, 0.5),
         radius: 0.1,
-        material: materials::Material::Lambertian(1., 0.1, 1.0),
+        material: materials::Material::Metal(1., 1., 1., 0.3),
+    }));
+    world.list.push(Box::new(Sphere {
+        center: Vec3(0.25, -0.25, 0.5),
+        radius: 0.1,
+        material: materials::Material::Metal(0.71, 0.46, 0.16, 0.3),
     }));
 
     //Camera
