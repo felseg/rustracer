@@ -4,31 +4,27 @@ use std::{
 };
 
 #[derive(Copy, Clone, PartialEq, Debug)]
-pub struct Vec3 {
-    pub x: f64,
-    pub y: f64,
-    pub z: f64,
-}
+pub struct Vec3(pub f64, pub f64, pub f64);
 
 impl Vec3 {
     pub fn length(self) -> f64 {
         f64::sqrt(self.length_squared())
     }
     pub fn length_squared(self) -> f64 {
-        self.x * self.x + self.y * self.y + self.z * self.z
+        self.0 * self.0 + self.1 * self.1 + self.2 * self.2
     }
 }
 
 pub fn cross(a: &Vec3, b: &Vec3) -> Vec3 {
-    Vec3 {
-        x: a.y * b.z - a.z * b.y,
-        y: a.z * b.x - a.x * b.z,
-        z: a.x * b.y - a.y * b.x,
-    }
+    Vec3(
+        a.1 * b.2 - a.2 * b.1,
+        a.2 * b.0 - a.0 * b.2,
+        a.0 * b.1 - a.1 * b.0,
+    )
 }
 
 pub fn dot(a: &Vec3, b: &Vec3) -> f64 {
-    a.x * b.x + a.y * b.y + a.z * b.z
+    a.0 * b.0 + a.1 * b.1 + a.2 * b.2
 }
 
 pub fn unit_vector(vec: &Vec3) -> Vec3 {
@@ -37,7 +33,7 @@ pub fn unit_vector(vec: &Vec3) -> Vec3 {
 
 impl fmt::Display for Vec3 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        writeln!(f, "Vector:\n x:{} y:{} z:{}", self.x, self.y, self.z)
+        writeln!(f, "Vector:\n 0:{} 1:{} 2:{}", self.0, self.1, self.2)
     }
 }
 
@@ -45,19 +41,15 @@ impl ops::Add<Vec3> for Vec3 {
     type Output = Vec3;
 
     fn add(self, rhs: Vec3) -> Self::Output {
-        Vec3 {
-            x: self.x + rhs.x,
-            y: self.y + rhs.y,
-            z: self.z + rhs.z,
-        }
+        Vec3(self.0 + rhs.0, self.1 + rhs.1, self.2 + rhs.2)
     }
 }
 
 impl ops::AddAssign<Vec3> for Vec3 {
     fn add_assign(&mut self, rhs: Vec3) {
-        self.x += rhs.x;
-        self.y += rhs.y;
-        self.z += rhs.z;
+        self.0 += rhs.0;
+        self.1 += rhs.1;
+        self.2 += rhs.2;
     }
 }
 
@@ -65,11 +57,7 @@ impl ops::Sub<Vec3> for Vec3 {
     type Output = Vec3;
 
     fn sub(self, rhs: Vec3) -> Self::Output {
-        Vec3 {
-            x: self.x - rhs.x,
-            y: self.y - rhs.y,
-            z: self.z - rhs.z,
-        }
+        Vec3(self.0 - rhs.0, self.1 - rhs.1, self.2 - rhs.2)
     }
 }
 
@@ -77,11 +65,7 @@ impl ops::Neg for Vec3 {
     type Output = Vec3;
 
     fn neg(self) -> Self::Output {
-        Vec3 {
-            x: self.x * -1.,
-            y: self.y * -1.,
-            z: self.z * -1.,
-        }
+        Vec3(self.0 * -1., self.1 * -1., self.2 * -1.)
     }
 }
 
@@ -89,11 +73,7 @@ impl ops::Mul<f64> for Vec3 {
     type Output = Vec3;
 
     fn mul(self, f: f64) -> Self::Output {
-        Vec3 {
-            x: self.x * f,
-            y: self.y * f,
-            z: self.z * f,
-        }
+        Vec3(self.0 * f, self.1 * f, self.2 * f)
     }
 }
 
@@ -101,19 +81,15 @@ impl ops::Mul<Vec3> for f64 {
     type Output = Vec3;
 
     fn mul(self, rhs: Vec3) -> Self::Output {
-        Vec3 {
-            x: rhs.x * self,
-            y: rhs.y * self,
-            z: rhs.z * self,
-        }
+        Vec3(rhs.0 * self, rhs.1 * self, rhs.2 * self)
     }
 }
 
 impl ops::MulAssign<f64> for Vec3 {
     fn mul_assign(&mut self, f: f64) {
-        self.x *= f;
-        self.y *= f;
-        self.z *= f;
+        self.0 *= f;
+        self.1 *= f;
+        self.2 *= f;
     }
 }
 
@@ -121,11 +97,7 @@ impl ops::Mul<Vec3> for Vec3 {
     type Output = Vec3;
 
     fn mul(self, rhs: Vec3) -> Self::Output {
-        Vec3 {
-            x: self.x * rhs.x,
-            y: self.y * rhs.y,
-            z: self.z * rhs.z,
-        }
+        Vec3(self.0 * rhs.0, self.1 * rhs.1, self.2 * rhs.2)
     }
 }
 
@@ -133,73 +105,31 @@ impl ops::Div<f64> for Vec3 {
     type Output = Vec3;
 
     fn div(self, f: f64) -> Self::Output {
-        Vec3 {
-            x: self.x * 1. / f,
-            y: self.y * 1. / f,
-            z: self.z * 1. / f,
-        }
+        Vec3(self.0 * 1. / f, self.1 * 1. / f, self.2 * 1. / f)
     }
 }
 
 impl ops::DivAssign<f64> for Vec3 {
     fn div_assign(&mut self, f: f64) {
-        self.x /= f;
-        self.y /= f;
-        self.z /= f;
+        self.0 /= f;
+        self.1 /= f;
+        self.2 /= f;
     }
 }
-
-//todo: think about this some more
-impl ops::Index<usize> for Vec3 {
-    type Output = f64;
-
-    fn index(&self, index: usize) -> &Self::Output {
-        match index {
-            0 => &self.x,
-            1 => &self.y,
-            2 => &self.z,
-            _ => panic!("index out of bounds in Vec3"),
-        }
-    }
-}
-
-impl ops::IndexMut<usize> for Vec3 {
-    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
-        match index {
-            0 => &mut self.x,
-            1 => &mut self.y,
-            2 => &mut self.z,
-            _ => panic!("index out of bounds in Vec3"),
-        }
-    }
-}
-
 #[cfg(test)]
 mod vec3_tests {
     use super::*;
 
     fn basic_vec() -> Vec3 {
-        Vec3 {
-            x: 2.,
-            y: 2.,
-            z: 2.,
-        }
+        Vec3(2., 2., 2.)
     }
 
     fn basic_result() -> Vec3 {
-        Vec3 {
-            x: 4.,
-            y: 4.,
-            z: 4.,
-        }
+        Vec3(4., 4., 4.)
     }
 
     fn basic_result_div() -> Vec3 {
-        Vec3 {
-            x: 1.,
-            y: 1.,
-            z: 1.,
-        }
+        Vec3(1., 1., 1.)
     }
 
     #[test]
@@ -213,28 +143,7 @@ mod vec3_tests {
     fn test_cross() {
         let a = basic_vec();
         let b = basic_vec();
-        assert_eq!(
-            cross(&a, &b),
-            Vec3 {
-                x: 0.,
-                y: 0.,
-                z: 0.
-            }
-        );
-    }
-
-    #[test]
-    fn test_index() {
-        let a = basic_vec();
-
-        assert_eq!(a[1], 2.)
-    }
-
-    #[test]
-    fn test_index_mut() {
-        let mut a = basic_vec();
-        a[1] += 5.;
-        assert_eq!(a[1], 7.)
+        assert_eq!(cross(&a, &b), Vec3(0., 0., 0.));
     }
 
     #[test]
@@ -280,21 +189,14 @@ mod vec3_tests {
     }
 
     #[test]
-    fn test_mul_symmetric() {
+    fn test_mul_s1mmetric() {
         let a = basic_vec();
         assert_eq!(2. * a, a * 2.);
     }
     #[test]
     fn test_neg() {
         let a = basic_vec();
-        assert_eq!(
-            -a,
-            Vec3 {
-                x: -2.,
-                y: -2.,
-                z: -2.
-            }
-        )
+        assert_eq!(-a, Vec3(-2., -2., -2.))
     }
 
     #[test]

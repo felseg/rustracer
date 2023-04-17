@@ -17,44 +17,14 @@ fn create_file(filename: &str) -> File {
 }
 
 fn ray_color(ray: &Ray) -> Vec3 {
-    let t = hit_sphere(
-        &Vec3 {
-            x: 0.,
-            y: 0.,
-            z: -1.,
-        },
-        0.5,
-        ray,
-    );
+    let t = hit_sphere(&Vec3(0., 0., -1.), 0.5, ray);
     if t > 0. {
-        let n = unit_vector(
-            &(ray.at(t)
-                - Vec3 {
-                    x: 0.,
-                    y: 0.,
-                    z: -1.,
-                }),
-        );
-        return 0.5
-            * Vec3 {
-                x: n.x + 1.,
-                y: n.y + 1.,
-                z: n.z + 1.,
-            };
+        let n = unit_vector(&(ray.at(t) - Vec3(0., 0., -1.)));
+        return 0.5 * Vec3(n.0 + 1., n.1 + 1., n.2 + 1.);
     }
     let unit_direction = unit_vector(&ray.dir);
-    let t = 0.5 * (unit_direction.y + 1.);
-    (1. - t)
-        * Vec3 {
-            x: 1.,
-            y: 0.,
-            z: 1.,
-        }
-        + t * Vec3 {
-            x: 1.,
-            y: 0.7,
-            z: 0.3,
-        }
+    let t = 0.5 * (unit_direction.1 + 1.);
+    (1. - t) * Vec3(1., 0., 1.) + t * Vec3(1., 0.7, 0.3)
 }
 
 fn hit_sphere(center: &Vec3, radius: f64, ray: &Ray) -> f64 {
@@ -71,9 +41,9 @@ fn hit_sphere(center: &Vec3, radius: f64, ray: &Ray) -> f64 {
 }
 
 fn write(vec: &Vec3, out: &mut File) {
-    let r = (255.999 * vec.x) as i32;
-    let g = (255.999 * vec.y) as i32;
-    let b = (255.999 * vec.z) as i32;
+    let r = (255.999 * vec.0) as i32;
+    let g = (255.999 * vec.1) as i32;
+    let b = (255.999 * vec.2) as i32;
 
     if let Err(_) = write!(out, "{} {} {}\n", r, g, b) {
         panic!("Failed writing output image to file");
@@ -99,32 +69,13 @@ fn main() {
     let viewport_width = aspect_ratio * viewport_height;
     let focal_length = 1.;
 
-    let origin = Vec3 {
-        x: 0.,
-        y: 0.,
-        z: 0.,
-    };
+    let origin = Vec3(0., 0., 0.);
 
-    let horizontal = Vec3 {
-        x: viewport_width,
-        y: 0.,
-        z: 0.,
-    };
+    let horizontal = Vec3(viewport_width, 0., 0.);
 
-    let vertical = Vec3 {
-        x: 0.,
-        y: viewport_height,
-        z: 0.,
-    };
+    let vertical = Vec3(0., viewport_height, 0.);
 
-    let lower_left_corner = origin
-        - horizontal / 2.
-        - vertical / 2.
-        - Vec3 {
-            x: 0.,
-            y: 0.,
-            z: focal_length,
-        };
+    let lower_left_corner = origin - horizontal / 2. - vertical / 2. - Vec3(0., 0., focal_length);
 
     //Render
 
