@@ -1,15 +1,17 @@
 use crate::{
+    materials::Material,
     ray::Ray,
     vec3::{dot, Vec3},
 };
 pub mod sphere;
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct Hit {
     pub point: Vec3,
     pub normal: Vec3,
     pub t: f64,
     pub front_face: bool,
+    pub material: Material,
 }
 
 impl Hit {

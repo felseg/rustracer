@@ -1,14 +1,18 @@
-use crate::vec3::{dot, Vec3};
+use crate::{
+    materials::Material,
+    vec3::{dot, Vec3},
+};
 
 use super::Hittable;
 
 pub struct Sphere {
     pub center: Vec3,
     pub radius: f64,
+    pub material: Material,
 }
 
 impl Hittable for Sphere {
-    fn hit(&mut self, ray: &crate::ray::Ray, t_min: f64, t_max: f64, hit: &mut super::Hit) -> bool {
+    fn hit(&mut self, ray: &crate::ray::Ray, t_min: f64, t_max: f64, rec: &mut super::Hit) -> bool {
         let oc = ray.origin - self.center;
         let a = ray.dir.length_squared();
         let half_b = dot(&oc, &ray.dir);
@@ -31,10 +35,11 @@ impl Hittable for Sphere {
             }
         }
 
-        hit.t = root;
-        hit.point = ray.at(hit.t);
-        let outward_normal = (hit.point - self.center) / self.radius;
-        hit.set_face_normal(ray, &outward_normal);
+        rec.t = root;
+        rec.point = ray.at(rec.t);
+        let outward_normal = (rec.point - self.center) / self.radius;
+        rec.set_face_normal(ray, &outward_normal);
+        rec.material = self.material;
 
         return true;
     }

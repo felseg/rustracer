@@ -13,6 +13,15 @@ impl Vec3 {
     pub fn length_squared(self) -> f64 {
         self.0 * self.0 + self.1 * self.1 + self.2 * self.2
     }
+
+    pub fn close_to_zero(&self) -> bool {
+        let s = 1e-8;
+        f64::abs(self.0) < s && f64::abs(self.1) < s && f64::abs(self.2) < s
+    }
+}
+
+pub fn reflect(v: &Vec3, n: &Vec3) -> Vec3 {
+    *v - 2. * dot(&v, &n) * n.clone()
 }
 
 pub fn cross(a: &Vec3, b: &Vec3) -> Vec3 {

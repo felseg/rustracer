@@ -1,5 +1,6 @@
 use crate::{
     hittable::{Hit, Hittable},
+    materials,
     vec3::Vec3,
 };
 
@@ -19,8 +20,9 @@ impl Hittable for Hittables {
         let mut temp_rec = Hit {
             point: Vec3(0., 0., 0.),
             normal: Vec3(0., 0., 0.),
-            t: -1.,
-            front_face: false,
+            t: 0.,
+            front_face: true,
+            material: materials::Material::Lambertian(0., 0., 0.),
         };
         let mut hit_anything = false;
         let mut closest_so_far = t_max;

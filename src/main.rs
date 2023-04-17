@@ -3,8 +3,9 @@ use std::{f64::INFINITY, fs::File, io::Write};
 use camera::Camera;
 use hittable::{sphere::Sphere, Hit, Hittable};
 use hittables::Hittables;
+use materials::scatter;
 use ray::Ray;
-use utils::{clamp, random_double, random_in_unit_sphere, random_unit_vector};
+use utils::{clamp, random_double};
 use vec3::{unit_vector, Vec3};
 
 mod camera;
@@ -34,19 +35,21 @@ fn ray_color(ray: &Ray, world: &mut dyn Hittable, depth: i32) -> Vec3 {
         normal: Vec3(0., 0., 0.),
         t: 0.,
         front_face: true,
+        material: materials::Material::Init,
     };
 
     if world.hit(&ray, 0.001, INFINITY, &mut rec) {
-        let target = rec.point + rec.normal + random_unit_vector();
-        return 0.5
-            * ray_color(
-                &Ray {
-                    origin: rec.point,
-                    dir: target - rec.point,
-                },
-                world,
-                depth - 1,
-            );
+        let mut scattered = Ray {
+            origin: Vec3(0., 0., 0.),
+            dir: Vec3(0., 0., 0.),
+        };
+
+        let mut attenuation = Vec3(0., 0., 0.);
+
+        if scatter(rec.material, ray, &rec, &mut attenuation, &mut scattered) {
+            return attenuation * ray_color(&scattered, world, depth - 1);
+        }
+        return Vec3(0., 0., 0.);
     }
 
     let unit_direction = unit_vector(&ray.dir);
@@ -90,8 +93,8 @@ fn main() {
     let aspect_ratio = 16. / 9.;
     let image_width = 1200;
     let image_height = (image_width as f64 / aspect_ratio) as i32;
-    let samples_per_pixel = 15;
-    let max_depth = 10;
+    let samples_per_pixel = 32;
+    let max_depth = 16;
 
     write_header(image_width, image_height, &mut file);
 
@@ -100,10 +103,22 @@ fn main() {
     world.list.push(Box::new(Sphere {
         center: Vec3(0., -100.5, -1.),
         radius: 100.,
+        material: materials::Material::Lambertian(0.1, 0.7, 0.0),
     }));
     world.list.push(Box::new(Sphere {
-        center: Vec3(0., 0., -1.),
+        center: Vec3(0.5, 0., -1.),
         radius: 0.5,
+        material: materials::Material::Metal(0.8, 0.8, 0.8, 0.0),
+    }));
+    world.list.push(Box::new(Sphere {
+        center: Vec3(-0.5, 0., -1.),
+        radius: 0.5,
+        material: materials::Material::Metal(0.0, 0.5, 1.0, 0.5),
+    }));
+    world.list.push(Box::new(Sphere {
+        center: Vec3(0., -0.4, -0.2),
+        radius: 0.1,
+        material: materials::Material::Lambertian(1., 0.1, 1.0),
     }));
 
     //Camera
