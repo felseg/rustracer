@@ -1,9 +1,17 @@
-use std::{fs::File, io::Write};
+use std::{f64::INFINITY, fs::File, io::Write};
 
+use camera::Camera;
+use hittable::{sphere::Sphere, Hit, Hittable};
+use hittables::Hittables;
 use ray::Ray;
-use vec3::{dot, unit_vector, Vec3};
+use utils::{clamp, random_double, random_in_unit_sphere, random_unit_vector};
+use vec3::{unit_vector, Vec3};
 
+mod camera;
 mod file;
+mod hittable;
+mod hittables;
+mod materials;
 mod rand;
 mod ray;
 mod utils;
@@ -16,36 +24,54 @@ fn create_file(filename: &str) -> File {
     };
 }
 
-fn ray_color(ray: &Ray) -> Vec3 {
-    let t = hit_sphere(&Vec3(0., 0., -1.), 0.5, ray);
-    if t > 0. {
-        let n = unit_vector(&(ray.at(t) - Vec3(0., 0., -1.)));
-        return 0.5 * Vec3(n.0 + 1., n.1 + 1., n.2 + 1.);
+fn ray_color(ray: &Ray, world: &mut dyn Hittable, depth: i32) -> Vec3 {
+    if depth <= 0 {
+        return Vec3(0., 0., 0.);
     }
+
+    let mut rec = Hit {
+        point: Vec3(0., 0., 0.),
+        normal: Vec3(0., 0., 0.),
+        t: 0.,
+        front_face: true,
+    };
+
+    if world.hit(&ray, 0.001, INFINITY, &mut rec) {
+        let target = rec.point + rec.normal + random_unit_vector();
+        return 0.5
+            * ray_color(
+                &Ray {
+                    origin: rec.point,
+                    dir: target - rec.point,
+                },
+                world,
+                depth - 1,
+            );
+    }
+
     let unit_direction = unit_vector(&ray.dir);
     let t = 0.5 * (unit_direction.1 + 1.);
-    (1. - t) * Vec3(1., 0., 1.) + t * Vec3(1., 0.7, 0.3)
+    (1. - t) * Vec3(1., 1., 1.) + t * Vec3(0.5, 0.7, 1.0)
 }
 
-fn hit_sphere(center: &Vec3, radius: f64, ray: &Ray) -> f64 {
-    let oc = ray.origin - *center;
-    let a = dot(&ray.dir, &ray.dir);
-    let b = 2.0 * dot(&oc, &ray.dir);
-    let c = dot(&oc, &oc) - radius * radius;
-    let discriminant = b * b - 4. * a * c;
-    if discriminant < 0. {
-        -1.
-    } else {
-        (-b - f64::sqrt(discriminant)) / (2.0 * a)
-    }
-}
+fn write_color(vec: &Vec3, out: &mut File, samples_per_pixel: i32) {
+    let mut r = vec.0;
+    let mut g = vec.1;
+    let mut b = vec.2;
 
-fn write(vec: &Vec3, out: &mut File) {
-    let r = (255.999 * vec.0) as i32;
-    let g = (255.999 * vec.1) as i32;
-    let b = (255.999 * vec.2) as i32;
+    let scale = 1.0 / samples_per_pixel as f64;
 
-    if let Err(_) = write!(out, "{} {} {}\n", r, g, b) {
+    r = f64::sqrt(scale * r);
+    g = f64::sqrt(scale * g);
+    b = f64::sqrt(scale * b);
+
+    if let Err(_) = write!(
+        out,
+        "{} {} {}\n",
+        256. * clamp(r, 0., 0.999),
+        256. * clamp(g, 0., 0.999),
+        256. * clamp(b, 0., 0.999)
+    ) {
         panic!("Failed writing output image to file");
     }
 }
@@ -57,42 +83,50 @@ fn write_header(width: i32, height: i32, out: &mut File) {
 }
 
 fn main() {
-    let aspect_ratio = 16. / 9.;
-    let image_width = 400;
-    let image_height = (image_width as f64 / aspect_ratio) as i32;
-
+    //Output
     let mut file = create_file("out.ppm");
+
+    //Image
+    let aspect_ratio = 16. / 9.;
+    let image_width = 1200;
+    let image_height = (image_width as f64 / aspect_ratio) as i32;
+    let samples_per_pixel = 15;
+    let max_depth = 10;
 
     write_header(image_width, image_height, &mut file);
 
-    let viewport_height = 2.;
-    let viewport_width = aspect_ratio * viewport_height;
-    let focal_length = 1.;
+    //World
+    let mut world = Hittables { list: Vec::new() };
+    world.list.push(Box::new(Sphere {
+        center: Vec3(0., -100.5, -1.),
+        radius: 100.,
+    }));
+    world.list.push(Box::new(Sphere {
+        center: Vec3(0., 0., -1.),
+        radius: 0.5,
+    }));
 
-    let origin = Vec3(0., 0., 0.);
+    //Camera
 
-    let horizontal = Vec3(viewport_width, 0., 0.);
-
-    let vertical = Vec3(0., viewport_height, 0.);
-
-    let lower_left_corner = origin - horizontal / 2. - vertical / 2. - Vec3(0., 0., focal_length);
+    let camera = Camera::new();
 
     //Render
 
     for j in (0..image_height).rev() {
+        println!("currently rendering row {}", j);
         for i in 0..image_width {
-            let u = i as f64 / (image_width - 1) as f64;
-            let v = j as f64 / (image_height - 1) as f64;
-            let dir = lower_left_corner + u * horizontal + v * vertical;
+            let mut pixel_color = Vec3(0., 0., 0.);
 
-            let r = Ray {
-                origin,
-                dir: lower_left_corner + u * horizontal + v * vertical,
-            };
+            for _ in 0..samples_per_pixel {
+                let u = (i as f64 + random_double()) / (image_width - 1) as f64;
+                let v = (j as f64 + random_double()) / (image_height - 1) as f64;
 
-            let color = ray_color(&r);
+                let r = camera.get_ray(u, v);
 
-            write(&color, &mut file)
+                pixel_color += ray_color(&r, &mut world, max_depth);
+            }
+
+            write_color(&pixel_color, &mut file, samples_per_pixel);
         }
     }
 }
