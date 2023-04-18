@@ -1,7 +1,7 @@
 use std::{
     f64::INFINITY,
     fs::File,
-    io::{stdout, Stdout, Write},
+    io::{stdout, BufWriter, Stdout, Write},
 };
 
 use camera::Camera;
@@ -70,7 +70,7 @@ fn ray_color(ray: &Ray, world: &mut dyn Hittable, depth: i32) -> Vec3 {
     (1. - t) * Vec3(1., 1., 1.) + t * Vec3(0.1, 0.4, 1.0)
 }
 
-fn write_color(vec: &Vec3, out: &mut File, samples_per_pixel: i32) {
+fn write_color(vec: &Vec3, out: &mut BufWriter<File>, samples_per_pixel: i32) {
     let mut r = vec.0;
     let mut g = vec.1;
     let mut b = vec.2;
@@ -92,7 +92,7 @@ fn write_color(vec: &Vec3, out: &mut File, samples_per_pixel: i32) {
     }
 }
 
-fn write_header(width: i32, height: i32, out: &mut File) {
+fn write_header(width: i32, height: i32, out: &mut BufWriter<File>) {
     if let Err(_) = write!(out, "P3\n{} {}\n255\n", width, height) {
         panic!("Failed writing to file")
     }
@@ -100,16 +100,17 @@ fn write_header(width: i32, height: i32, out: &mut File) {
 
 fn main() {
     //Output
-    let mut file = create_file("out.ppm");
+    let mut file = BufWriter::with_capacity(128_000_000, create_file("out.ppm"));
 
     //Image
     let aspect_ratio = 16. / 9.;
     let image_width = 1920;
     let image_height = (image_width as f64 / aspect_ratio) as i32;
-    let samples_per_pixel = 50;
-    let max_depth = 20;
+    let samples_per_pixel = 25;
+    let max_depth = 10;
 
     write_header(image_width, image_height, &mut file);
+    file.flush().unwrap();
 
     //World
     let mut world = Hittables { list: Vec::new() };
@@ -184,6 +185,7 @@ fn main() {
             write_color(&pixel_color, &mut file, samples_per_pixel);
         }
     }
+    file.flush().unwrap();
     finished(&mut stdout);
     stdout.execute(cursor::Show).unwrap();
 }
