@@ -1,10 +1,12 @@
-use crate::{ray::Ray, vec3::Vec3};
+use crate::{ray::Ray, utils::degrees_to_radians, vec3::Vec3};
 
 pub struct Camera {
-    pub origin: Vec3,
-    pub lower_left_corner: Vec3,
-    pub horizontal: Vec3,
-    pub vertical: Vec3,
+    vfov: f64,
+    aspect_ratio: f64,
+    origin: Vec3,
+    lower_left_corner: Vec3,
+    horizontal: Vec3,
+    vertical: Vec3,
 }
 
 impl Camera {
@@ -15,10 +17,10 @@ impl Camera {
         }
     }
 
-    pub fn new() -> Camera {
-        let aspect_ratio = 16. / 9.;
-
-        let viewport_height = 2.;
+    pub fn new(vfov: f64, aspect_ratio: f64) -> Camera {
+        let theta = degrees_to_radians(vfov);
+        let h = f64::tan(theta / 2.);
+        let viewport_height = 2. * h;
         let viewport_width = aspect_ratio * viewport_height;
         let focal_length = 1.;
 
@@ -29,6 +31,8 @@ impl Camera {
             origin - horizontal / 2. - vertical / 2. - Vec3(0., 0., focal_length);
 
         Camera {
+            vfov,
+            aspect_ratio,
             origin,
             lower_left_corner,
             horizontal,
