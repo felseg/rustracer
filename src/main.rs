@@ -161,7 +161,7 @@ fn main() {
 
     //Camera
 
-    let camera = Camera::new();
+    let camera = Camera::new(90., aspect_ratio);
 
     //Render
 
