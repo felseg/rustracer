@@ -47,7 +47,7 @@ pub fn scatter(
         }
         Material::Dielectric(ir) => {
             *attenuation = Vec3(1., 1., 1.);
-            let refraction_ratio = if rec.front_face { (1. / ir) } else { ir };
+            let refraction_ratio = if rec.front_face { 1. / ir } else { ir };
 
             let unit_direction = unit_vector(&ray.dir);
 

@@ -1,6 +1,19 @@
-use std::{f64::INFINITY, fs::File, io::Write};
+use std::{
+    f64::INFINITY,
+    fs::File,
+    io::{stdout, Stdout, Write},
+};
 
 use camera::Camera;
+use crossterm::{
+    cursor,
+    style::{Print, SetForegroundColor},
+    terminal, ExecutableCommand, QueueableCommand,
+};
+use crossterm::{
+    execute,
+    style::{Color, Stylize},
+};
 use hittable::{sphere::Sphere, Hit, Hittable};
 use hittables::Hittables;
 use materials::scatter;
@@ -152,8 +165,10 @@ fn main() {
 
     //Render
 
+    let mut stdout = stdout();
+    stdout.execute(cursor::Hide).unwrap();
     for j in (0..image_height).rev() {
-        println!("currently rendering row {}", j);
+        progress(&mut stdout, j, image_height);
         for i in 0..image_width {
             let mut pixel_color = Vec3(0., 0., 0.);
 
@@ -169,4 +184,40 @@ fn main() {
             write_color(&pixel_color, &mut file, samples_per_pixel);
         }
     }
+    finished(&mut stdout);
+    stdout.execute(cursor::Show).unwrap();
+}
+
+fn finished(stdout: &mut Stdout) {
+    stdout
+        .write_all(format!("{}", "Render saved to out.ppm.".bold().green()).as_bytes())
+        .unwrap();
+}
+
+fn progress(stdout: &mut Stdout, current: i32, image_height: i32) {
+    let percentage = current as f64 / image_height as f64;
+    let rgb_value = (percentage * 255.) as u8;
+
+    let current_color = Color::Rgb {
+        r: rgb_value,
+        g: 255 - rgb_value,
+        b: 0,
+    };
+
+    stdout.queue(cursor::SavePosition).unwrap();
+    stdout
+        .write_all(format!("{} ", "Rendering to out.ppm: ".bold().dark_magenta(),).as_bytes())
+        .unwrap();
+    execute!(
+        stdout,
+        SetForegroundColor(current_color),
+        Print(format!("{:.2}", 100. - percentage * 100.))
+    )
+    .unwrap();
+
+    stdout.flush().unwrap();
+    stdout.queue(cursor::RestorePosition).unwrap();
+    stdout
+        .queue(terminal::Clear(terminal::ClearType::FromCursorDown))
+        .unwrap();
 }

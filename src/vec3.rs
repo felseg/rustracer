@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 use std::{
     fmt,
     ops::{self},
@@ -7,23 +9,27 @@ use std::{
 pub struct Vec3(pub f64, pub f64, pub f64);
 
 impl Vec3 {
+    #[inline(always)]
     pub fn length(self) -> f64 {
         f64::sqrt(self.length_squared())
     }
+    #[inline(always)]
     pub fn length_squared(self) -> f64 {
         self.0 * self.0 + self.1 * self.1 + self.2 * self.2
     }
-
+    #[inline(always)]
     pub fn close_to_zero(&self) -> bool {
         let s = 1e-8;
         f64::abs(self.0) < s && f64::abs(self.1) < s && f64::abs(self.2) < s
     }
 }
 
+#[inline(always)]
 pub fn reflect(v: &Vec3, n: &Vec3) -> Vec3 {
     *v - 2. * dot(&v, &n) * n.clone()
 }
 
+#[inline(always)]
 pub fn cross(a: &Vec3, b: &Vec3) -> Vec3 {
     Vec3(
         a.1 * b.2 - a.2 * b.1,
@@ -32,10 +38,12 @@ pub fn cross(a: &Vec3, b: &Vec3) -> Vec3 {
     )
 }
 
+#[inline(always)]
 pub fn dot(a: &Vec3, b: &Vec3) -> f64 {
     a.0 * b.0 + a.1 * b.1 + a.2 * b.2
 }
 
+#[inline(always)]
 pub fn unit_vector(vec: &Vec3) -> Vec3 {
     *vec / vec.length()
 }
@@ -49,12 +57,14 @@ impl fmt::Display for Vec3 {
 impl ops::Add<Vec3> for Vec3 {
     type Output = Vec3;
 
+    #[inline(always)]
     fn add(self, rhs: Vec3) -> Self::Output {
         Vec3(self.0 + rhs.0, self.1 + rhs.1, self.2 + rhs.2)
     }
 }
 
 impl ops::AddAssign<Vec3> for Vec3 {
+    #[inline(always)]
     fn add_assign(&mut self, rhs: Vec3) {
         self.0 += rhs.0;
         self.1 += rhs.1;
@@ -65,6 +75,7 @@ impl ops::AddAssign<Vec3> for Vec3 {
 impl ops::Sub<Vec3> for Vec3 {
     type Output = Vec3;
 
+    #[inline(always)]
     fn sub(self, rhs: Vec3) -> Self::Output {
         Vec3(self.0 - rhs.0, self.1 - rhs.1, self.2 - rhs.2)
     }
@@ -73,6 +84,7 @@ impl ops::Sub<Vec3> for Vec3 {
 impl ops::Neg for Vec3 {
     type Output = Vec3;
 
+    #[inline(always)]
     fn neg(self) -> Self::Output {
         Vec3(self.0 * -1., self.1 * -1., self.2 * -1.)
     }
@@ -81,6 +93,7 @@ impl ops::Neg for Vec3 {
 impl ops::Mul<f64> for Vec3 {
     type Output = Vec3;
 
+    #[inline(always)]
     fn mul(self, f: f64) -> Self::Output {
         Vec3(self.0 * f, self.1 * f, self.2 * f)
     }
@@ -89,12 +102,14 @@ impl ops::Mul<f64> for Vec3 {
 impl ops::Mul<Vec3> for f64 {
     type Output = Vec3;
 
+    #[inline(always)]
     fn mul(self, rhs: Vec3) -> Self::Output {
         Vec3(rhs.0 * self, rhs.1 * self, rhs.2 * self)
     }
 }
 
 impl ops::MulAssign<f64> for Vec3 {
+    #[inline(always)]
     fn mul_assign(&mut self, f: f64) {
         self.0 *= f;
         self.1 *= f;
@@ -105,6 +120,7 @@ impl ops::MulAssign<f64> for Vec3 {
 impl ops::Mul<Vec3> for Vec3 {
     type Output = Vec3;
 
+    #[inline(always)]
     fn mul(self, rhs: Vec3) -> Self::Output {
         Vec3(self.0 * rhs.0, self.1 * rhs.1, self.2 * rhs.2)
     }
@@ -113,12 +129,14 @@ impl ops::Mul<Vec3> for Vec3 {
 impl ops::Div<f64> for Vec3 {
     type Output = Vec3;
 
+    #[inline(always)]
     fn div(self, f: f64) -> Self::Output {
         Vec3(self.0 * 1. / f, self.1 * 1. / f, self.2 * 1. / f)
     }
 }
 
 impl ops::DivAssign<f64> for Vec3 {
+    #[inline(always)]
     fn div_assign(&mut self, f: f64) {
         self.0 /= f;
         self.1 /= f;

@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 use rand::Rng;
 
 use crate::vec3::{unit_vector, Vec3};
