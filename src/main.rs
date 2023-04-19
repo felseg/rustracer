@@ -5,6 +5,7 @@ use std::{
     sync::{Arc, Mutex},
 };
 
+use image::{Rgb, RgbImage};
 use rayon::prelude::*;
 
 use crate::hittables::Hittables::*;
@@ -75,6 +76,24 @@ fn ray_color(ray: &Ray, world: &Hittables, depth: i32) -> Vec3 {
     (1. - t) * Vec3(1., 1., 1.) + t * Vec3(0.1, 0.4, 1.0)
 }
 
+fn color_rgb(vec: &Vec3, samples_per_pixel: i32) -> (f64, f64, f64) {
+    let mut r = vec.0;
+    let mut g = vec.1;
+    let mut b = vec.2;
+
+    let scale = 1.0 / samples_per_pixel as f64;
+
+    r = f64::sqrt(scale * r);
+    g = f64::sqrt(scale * g);
+    b = f64::sqrt(scale * b);
+
+    (
+        256. * clamp(r, 0., 0.999),
+        256. * clamp(g, 0., 0.999),
+        256. * clamp(b, 0., 0.999),
+    )
+}
+
 fn write_color(vec: &Vec3, out: &mut BufWriter<File>, samples_per_pixel: i32) {
     let mut r = vec.0;
     let mut g = vec.1;
@@ -109,7 +128,7 @@ fn main() {
 
     //Image
     let aspect_ratio = 16. / 9.;
-    let image_width = 1920;
+    let image_width = 1000;
     let image_height = (image_width as f64 / aspect_ratio) as i32;
     let samples_per_pixel = 25;
     let max_depth = 10;
@@ -173,11 +192,25 @@ fn main() {
         }
     });
 
-    for j in pixels.iter().rev() {
-        for i in j.iter() {
-            write_color(i, &mut file, samples_per_pixel)
+    let mut img = RgbImage::new(
+        image_width.try_into().unwrap(),
+        image_height.try_into().unwrap(),
+    );
+
+    for (y, x_vec) in pixels.iter().rev().enumerate() {
+        for (x, pixel) in x_vec.iter().enumerate() {
+            let c = color_rgb(pixel, samples_per_pixel);
+            img.put_pixel(x as u32, y as u32, Rgb([c.0 as u8, c.1 as u8, c.2 as u8]))
         }
     }
+
+    img.save("out.png").unwrap();
+
+    // for j in pixels.iter().rev() {
+    //     for i in j.iter() {
+    //         write_color(i, &mut file, samples_per_pixel)
+    //     }
+    // }
 
     file.flush().unwrap();
     finished(&mut stdout);
