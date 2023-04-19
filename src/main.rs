@@ -109,7 +109,7 @@ fn main() {
 
     //Image
     let aspect_ratio = 16. / 9.;
-    let image_width = 800;
+    let image_width = 1920;
     let image_height = (image_width as f64 / aspect_ratio) as i32;
     let samples_per_pixel = 25;
     let max_depth = 10;
@@ -130,27 +130,22 @@ fn main() {
         0.25,
         Lambertian(0.94, 0.81, 0.66),
     ));
-
-    // hittables.list.push(Box::new(Sphere {
-    //     center: Vec3(1.25, -0.25, -0.25),
-    //     radius: 0.25,
-    //     material: materials::Material::Lambertian(0.6, 0.76, 0.73),
-    // }));
-    // hittables.list.push(Box::new(Sphere {
-    //     center: Vec3(-1.25, -0.25, -0.25),
-    //     radius: 0.25,
-    //     material: materials::Material::Lambertian(0.84, 0.55, 0.8),
-    // }));
-    // hittables.list.push(Box::new(Sphere {
-    //     center: Vec3(-0.25, -0.25, 0.5),
-    //     radius: 0.1,
-    //     material: materials::Material::Metal(1., 1., 1., 0.3),
-    // }));
-    // hittables.list.push(Box::new(Sphere {
-    //     center: Vec3(0.25, -0.25, 0.5),
-    //     radius: 0.1,
-    //     material: materials::Material::Metal(0.71, 0.46, 0.16, 0.3),
-    // }));
+    hittables.push(Sphere(
+        Vec3(1.25, -0.25, -0.25),
+        0.25,
+        Lambertian(0.6, 0.76, 0.73),
+    ));
+    hittables.push(Sphere(
+        Vec3(-1.25, -0.25, -0.25),
+        0.25,
+        Lambertian(0.84, 0.55, 0.8),
+    ));
+    hittables.push(Sphere(Vec3(-0.5, -0.4, 0.), 0.1, Metal(1., 1., 1., 0.3)));
+    hittables.push(Sphere(
+        Vec3(0.5, -0.4, 0.),
+        0.1,
+        Metal(0.71, 0.46, 0.16, 0.3),
+    ));
 
     let world = HittableObjects(hittables);
     //Camera
