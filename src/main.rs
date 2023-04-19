@@ -2,13 +2,13 @@ use std::{
     f64::INFINITY,
     fs::File,
     io::{stdout, BufWriter, Stdout, Write},
-    ops::Index,
     sync::{Arc, Mutex},
-    thread::Thread,
 };
 
+use rayon::prelude::*;
+
 use crate::hittables::Hittables::*;
-use crate::materials::Material::{Dielectric, Init, Lambertian, Metal};
+use crate::materials::Material::{Dielectric, Lambertian, Metal};
 use camera::Camera;
 use crossterm::{
     cursor,
@@ -19,7 +19,7 @@ use crossterm::{
     execute,
     style::{Color, Stylize},
 };
-use hittable::{Hit, Hittable};
+use hittable::Hit;
 use hittables::{hit, Hittables};
 use materials::scatter;
 use ray::Ray;
@@ -111,7 +111,6 @@ fn main() {
     let aspect_ratio = 16. / 9.;
     let image_width = 800;
     let image_height = (image_width as f64 / aspect_ratio) as i32;
-    println!("{}", image_height);
     let samples_per_pixel = 25;
     let max_depth = 10;
 
@@ -152,6 +151,7 @@ fn main() {
     //     radius: 0.1,
     //     material: materials::Material::Metal(0.71, 0.46, 0.16, 0.3),
     // }));
+
     let world = HittableObjects(hittables);
     //Camera
 
@@ -160,45 +160,27 @@ fn main() {
     //Render
     let mut stdout = stdout();
 
-    let pixels: Arc<Mutex<Vec<Vec<Vec3>>>> =
-        Arc::new(Mutex::new(vec![Vec::new(); image_height as usize]));
+    let mut pixels: Vec<Vec<Vec3>> = vec![Vec::new(); image_height as usize];
 
-    stdout.execute(cursor::Hide).unwrap();
-
-    let cores = std::thread::available_parallelism().unwrap().get();
-    unsafe {
-        std::thread::scope(|s| {
-            for core in 0..cores {
-                s.spawn(|| {
-                    for j in (core as i32..image_height).step_by(cores).rev() {
-                        let mut row = Vec::with_capacity(image_width as usize);
-                        for i in 0..image_width {
-                            let mut pixel_color = Vec3(0., 0., 0.);
-
-                            for _ in 0..samples_per_pixel {
-                                let u = (i as f64 + random_double()) / (image_width - 1) as f64;
-                                let v = (j as f64 + random_double()) / (image_height - 1) as f64;
-
-                                let r = camera.get_ray(u, v);
-
-                                pixel_color += ray_color(&r, &world, max_depth);
-                            }
-                            row.push(pixel_color);
-                        }
-                        pixels.lock().unwrap()[j as usize] = row;
-                    }
-                });
-            }
-        });
-    }
-
-    for j in (0..image_height).rev() {
+    pixels.par_iter_mut().enumerate().for_each(|x| {
         for i in 0..image_width {
-            write_color(
-                &pixels.lock().unwrap()[j as usize][i as usize],
-                &mut file,
-                samples_per_pixel,
-            );
+            let mut pixel_color = Vec3(0., 0., 0.);
+
+            for _ in 0..samples_per_pixel {
+                let u = (i as f64 + random_double()) / (image_width - 1) as f64;
+                let v = (x.0 as f64 + random_double()) / (image_height - 1) as f64;
+
+                let r = camera.get_ray(u, v);
+
+                pixel_color += ray_color(&r, &world, max_depth);
+            }
+            x.1.push(pixel_color);
+        }
+    });
+
+    for j in pixels.iter().rev() {
+        for i in j.iter() {
+            write_color(i, &mut file, samples_per_pixel)
         }
     }
 
