@@ -2,14 +2,13 @@ use std::{
     f64::INFINITY,
     fs::File,
     io::{stdout, BufWriter, Stdout, Write},
-    sync::{Arc, Mutex},
 };
 
 use image::{Rgb, RgbImage};
 use rayon::prelude::*;
 
 use crate::hittables::Hittables::*;
-use crate::materials::Material::{Dielectric, Lambertian, Metal};
+use crate::materials::Material::{Dielectric, Lambertian, Light, Metal};
 use camera::Camera;
 use crossterm::{
     cursor,
@@ -22,10 +21,10 @@ use crossterm::{
 };
 use hittable::Hit;
 use hittables::{hit, Hittables};
-use materials::scatter;
+use materials::{color_emitted, scatter};
 use ray::Ray;
 use utils::{clamp, random_double};
-use vec3::{unit_vector, Vec3};
+use vec3::Vec3;
 
 mod camera;
 mod file;
@@ -57,23 +56,21 @@ fn ray_color(ray: &Ray, world: &Hittables, depth: i32) -> Vec3 {
         material: materials::Material::Init,
     };
 
-    if hit(world, &ray, 0.001, INFINITY, &mut rec) {
-        let mut scattered = Ray {
-            origin: Vec3(0., 0., 0.),
-            dir: Vec3(0., 0., 0.),
-        };
-
-        let mut attenuation = Vec3(0., 0., 0.);
-
-        if scatter(rec.material, ray, &rec, &mut attenuation, &mut scattered) {
-            return attenuation * ray_color(&scattered, world, depth - 1);
-        }
+    if !hit(world, &ray, 0.001, INFINITY, &mut rec) {
         return Vec3(0., 0., 0.);
     }
+    let mut scattered = Ray {
+        origin: Vec3(0., 0., 0.),
+        dir: Vec3(0., 0., 0.),
+    };
 
-    let unit_direction = unit_vector(&ray.dir);
-    let t = 0.5 * (unit_direction.1 + 1.);
-    (1. - t) * Vec3(1., 1., 1.) + t * Vec3(0.1, 0.4, 1.0)
+    let mut attenuation = Vec3(0., 0., 0.);
+    let emitted = color_emitted(rec.material);
+
+    if !scatter(rec.material, ray, &rec, &mut attenuation, &mut scattered) {
+        return emitted;
+    }
+    emitted + attenuation * ray_color(&scattered, world, depth - 1)
 }
 
 fn color_rgb(vec: &Vec3, samples_per_pixel: i32) -> (f64, f64, f64) {
@@ -128,10 +125,10 @@ fn main() {
 
     //Image
     let aspect_ratio = 16. / 9.;
-    let image_width = 1000;
+    let image_width = 3840;
     let image_height = (image_width as f64 / aspect_ratio) as i32;
-    let samples_per_pixel = 25;
-    let max_depth = 10;
+    let samples_per_pixel = 200;
+    let max_depth = 50;
 
     write_header(image_width, image_height, &mut file);
     file.flush().unwrap();
@@ -140,14 +137,15 @@ fn main() {
     hittables.push(Sphere(
         Vec3(0., -100.5, -1.),
         100.,
-        Metal(0.9, 0.9, 0.9, 0.05),
+        Metal(0.5, 0.5, 0.5, 0.5),
     ));
+    hittables.push(Sphere(Vec3(0., 4., 5.), 4., Light(1.0, 1., 1.)));
     hittables.push(Sphere(Vec3(0.9, 0., -1.), 0.5, Metal(1., 1., 1., 0.0)));
-    hittables.push(Sphere(Vec3(-0.9, 0., -1.), -0.5, Dielectric(2.2)));
+    hittables.push(Sphere(Vec3(-0.9, 0., -1.), 0.5, Dielectric(1.3)));
     hittables.push(Sphere(
         Vec3(0., -0.25, -0.25),
         0.25,
-        Lambertian(0.94, 0.81, 0.66),
+        Lambertian(0.94, 0.2, 0.2),
     ));
     hittables.push(Sphere(
         Vec3(1.25, -0.25, -0.25),
@@ -169,7 +167,7 @@ fn main() {
     let world = HittableObjects(hittables);
     //Camera
 
-    let camera = Camera::new(90., aspect_ratio);
+    let camera = Camera::new(85., aspect_ratio);
 
     //Render
     let mut stdout = stdout();

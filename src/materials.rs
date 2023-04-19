@@ -10,6 +10,7 @@ pub enum Material {
     Lambertian(f64, f64, f64),
     Metal(f64, f64, f64, f64),
     Dielectric(f64),
+    Light(f64, f64, f64),
     Init,
 }
 
@@ -69,7 +70,15 @@ pub fn scatter(
             };
             true
         }
+        Material::Light(r, g, b) => false,
         Material::Init => false,
+    }
+}
+
+pub fn color_emitted(material: Material) -> Vec3 {
+    match material {
+        Material::Light(r, g, b) => Vec3(r, g, b),
+        _ => Vec3(0., 0., 0.),
     }
 }
 
