@@ -121,7 +121,7 @@ fn main() {
     hittables.push(Sphere(
         Vec3(0., -100.5, -1.),
         100.,
-        Metal(0.8, 0.8, 0.8, 0.05),
+        Metal(0.9, 0.9, 0.9, 0.05),
     ));
     hittables.push(Sphere(Vec3(0.9, 0., -1.), 0.5, Metal(1., 1., 1., 0.0)));
     hittables.push(Sphere(Vec3(-0.9, 0., -1.), -0.5, Dielectric(2.2)));
@@ -130,27 +130,22 @@ fn main() {
         0.25,
         Lambertian(0.94, 0.81, 0.66),
     ));
-
-    // hittables.list.push(Box::new(Sphere {
-    //     center: Vec3(1.25, -0.25, -0.25),
-    //     radius: 0.25,
-    //     material: materials::Material::Lambertian(0.6, 0.76, 0.73),
-    // }));
-    // hittables.list.push(Box::new(Sphere {
-    //     center: Vec3(-1.25, -0.25, -0.25),
-    //     radius: 0.25,
-    //     material: materials::Material::Lambertian(0.84, 0.55, 0.8),
-    // }));
-    // hittables.list.push(Box::new(Sphere {
-    //     center: Vec3(-0.25, -0.25, 0.5),
-    //     radius: 0.1,
-    //     material: materials::Material::Metal(1., 1., 1., 0.3),
-    // }));
-    // hittables.list.push(Box::new(Sphere {
-    //     center: Vec3(0.25, -0.25, 0.5),
-    //     radius: 0.1,
-    //     material: materials::Material::Metal(0.71, 0.46, 0.16, 0.3),
-    // }));
+    hittables.push(Sphere(
+        Vec3(1.25, -0.25, -0.25),
+        0.25,
+        Lambertian(0.6, 0.76, 0.73),
+    ));
+    hittables.push(Sphere(
+        Vec3(-1.25, -0.25, -0.25),
+        0.25,
+        Lambertian(0.84, 0.55, 0.8),
+    ));
+    hittables.push(Sphere(Vec3(-0.5, -0.4, 0.), 0.1, Metal(1., 1., 1., 0.3)));
+    hittables.push(Sphere(
+        Vec3(0.5, -0.4, 0.),
+        0.1,
+        Metal(0.71, 0.46, 0.16, 0.3),
+    ));
 
     let world = HittableObjects(hittables);
     //Camera
