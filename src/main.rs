@@ -109,7 +109,7 @@ fn main() {
 
     //Image
     let aspect_ratio = 16. / 9.;
-    let image_width = 1920;
+    let image_width = 800;
     let image_height = (image_width as f64 / aspect_ratio) as i32;
     let samples_per_pixel = 25;
     let max_depth = 10;
@@ -121,7 +121,7 @@ fn main() {
     hittables.push(Sphere(
         Vec3(0., -100.5, -1.),
         100.,
-        Metal(0.8, 0.8, 0.8, 0.05),
+        Metal(0.9, 0.9, 0.9, 0.05),
     ));
     hittables.push(Sphere(Vec3(0.9, 0., -1.), 0.5, Metal(1., 1., 1., 0.0)));
     hittables.push(Sphere(Vec3(-0.9, 0., -1.), -0.5, Dielectric(2.2)));
