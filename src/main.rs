@@ -82,13 +82,13 @@ fn main() {
     let aspect_ratio = 16. / 9.;
     let image_width = 1920;
     let image_height = (image_width as f64 / aspect_ratio) as i32;
-    let samples_per_pixel = 199;
+    let samples_per_pixel = 200;
     let max_depth = 25;
 
     let mut hittables = Vec::new();
 
     hittables.push(Sphere(Vec3(0., -1000., -1.), 1000., Metal(1., 1., 1., 0.7)));
-    //hittables.push(Sphere(Vec3(0., 1000., 0.), 900., Light(1., 1., 1.)));
+    hittables.push(Sphere(Vec3(0., 1000., 0.), 750., Light(1., 1., 1.)));
     // hittables.push(Sphere(Vec3(0.9, 0., -1.), 0.5, Metal(1., 1., 1., 0.0)));
     // hittables.push(Sphere(Vec3(-0.9, 0., -1.), 0.5, Dielectric(1.01)));
     // hittables.push(Sphere(
@@ -140,7 +140,7 @@ fn main() {
             } else if choose_mat < 0.9 {
                 hittables.push(Sphere(center, 0.3, Dielectric(1. + random_double())))
             } else {
-                hittables.push(Sphere(center + Vec3(0., 20., 0.), 6., Light(1., 1., 1.)));
+                //hittables.push(Sphere(center + Vec3(0., 20., 0.), 6., Light(1., 1., 1.)));
             }
         }
     }
@@ -149,7 +149,7 @@ fn main() {
     //Camera
 
     let camera = Camera::new(
-        Vec3(-11., 1., -11.),
+        Vec3(-11., 1.5, -11.),
         Vec3(-5., 1., -5.),
         Vec3(0., 1., 0.),
         50.,
