@@ -70,7 +70,7 @@ pub fn scatter(
             };
             true
         }
-        Material::Light(r, g, b) => false,
+        Material::Light(_, _, _) => false,
         Material::Init => false,
     }
 }

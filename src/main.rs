@@ -1,7 +1,6 @@
 use std::{
     f64::INFINITY,
-    fs::File,
-    io::{stdout, BufWriter, Stdout, Write},
+    io::{stdout, Stdout, Write},
 };
 
 use image::{Rgb, RgbImage};
@@ -10,16 +9,8 @@ use rayon::prelude::*;
 use crate::hittables::Hittables::*;
 use crate::materials::Material::{Dielectric, Lambertian, Light, Metal};
 use camera::Camera;
-use crossterm::{
-    cursor,
-    style::{Print, SetForegroundColor},
-    terminal, ExecutableCommand, QueueableCommand,
-};
-use crossterm::{
-    execute,
-    style::{Color, Stylize},
-};
-use hittable::Hit;
+use crossterm::style::Stylize;
+use hittable::{sphere::Sphere, Hit};
 use hittables::{hit, Hittables};
 use materials::{color_emitted, scatter};
 use ray::Ray;
@@ -36,13 +27,6 @@ mod ray;
 mod utils;
 mod vec3;
 
-fn create_file(filename: &str) -> File {
-    match File::create(filename) {
-        Ok(file) => return file,
-        Err(_) => panic!("failed to create file"),
-    };
-}
-
 fn ray_color(ray: &Ray, world: &Hittables, depth: i32) -> Vec3 {
     if depth <= 0 {
         return Vec3(0., 0., 0.);
@@ -57,8 +41,9 @@ fn ray_color(ray: &Ray, world: &Hittables, depth: i32) -> Vec3 {
     };
 
     if !hit(world, &ray, 0.001, INFINITY, &mut rec) {
-        return Vec3(0., 0., 0.);
+        return Vec3(0.0, 0.0, 0.0);
     }
+
     let mut scattered = Ray {
         origin: Vec3(0., 0., 0.),
         dir: Vec3(0., 0., 0.),
@@ -70,6 +55,7 @@ fn ray_color(ray: &Ray, world: &Hittables, depth: i32) -> Vec3 {
     if !scatter(rec.material, ray, &rec, &mut attenuation, &mut scattered) {
         return emitted;
     }
+
     emitted + attenuation * ray_color(&scattered, world, depth - 1)
 }
 
@@ -91,83 +77,84 @@ fn color_rgb(vec: &Vec3, samples_per_pixel: i32) -> (f64, f64, f64) {
     )
 }
 
-fn write_color(vec: &Vec3, out: &mut BufWriter<File>, samples_per_pixel: i32) {
-    let mut r = vec.0;
-    let mut g = vec.1;
-    let mut b = vec.2;
-
-    let scale = 1.0 / samples_per_pixel as f64;
-
-    r = f64::sqrt(scale * r);
-    g = f64::sqrt(scale * g);
-    b = f64::sqrt(scale * b);
-
-    if let Err(_) = write!(
-        out,
-        "{} {} {}\n",
-        256. * clamp(r, 0., 0.999),
-        256. * clamp(g, 0., 0.999),
-        256. * clamp(b, 0., 0.999)
-    ) {
-        panic!("Failed writing output image to file");
-    }
-}
-
-fn write_header(width: i32, height: i32, out: &mut BufWriter<File>) {
-    if let Err(_) = write!(out, "P3\n{} {}\n255\n", width, height) {
-        panic!("Failed writing to file")
-    }
-}
-
 fn main() {
-    //Output
-    let mut file = BufWriter::with_capacity(128_000_000, create_file("out.ppm"));
-
     //Image
     let aspect_ratio = 16. / 9.;
-    let image_width = 3840;
+    let image_width = 1920;
     let image_height = (image_width as f64 / aspect_ratio) as i32;
-    let samples_per_pixel = 200;
-    let max_depth = 50;
+    let samples_per_pixel = 199;
+    let max_depth = 25;
 
-    write_header(image_width, image_height, &mut file);
-    file.flush().unwrap();
     let mut hittables = Vec::new();
 
-    hittables.push(Sphere(
-        Vec3(0., -100.5, -1.),
-        100.,
-        Metal(0.5, 0.5, 0.5, 0.5),
-    ));
-    hittables.push(Sphere(Vec3(0., 4., 5.), 4., Light(1.0, 1., 1.)));
-    hittables.push(Sphere(Vec3(0.9, 0., -1.), 0.5, Metal(1., 1., 1., 0.0)));
-    hittables.push(Sphere(Vec3(-0.9, 0., -1.), 0.5, Dielectric(1.3)));
-    hittables.push(Sphere(
-        Vec3(0., -0.25, -0.25),
-        0.25,
-        Lambertian(0.94, 0.2, 0.2),
-    ));
-    hittables.push(Sphere(
-        Vec3(1.25, -0.25, -0.25),
-        0.25,
-        Lambertian(0.6, 0.76, 0.73),
-    ));
-    hittables.push(Sphere(
-        Vec3(-1.25, -0.25, -0.25),
-        0.25,
-        Lambertian(0.84, 0.55, 0.8),
-    ));
-    hittables.push(Sphere(Vec3(-0.5, -0.4, 0.), 0.1, Metal(1., 1., 1., 0.3)));
-    hittables.push(Sphere(
-        Vec3(0.5, -0.4, 0.),
-        0.1,
-        Metal(0.71, 0.46, 0.16, 0.3),
-    ));
+    hittables.push(Sphere(Vec3(0., -1000., -1.), 1000., Metal(1., 1., 1., 0.7)));
+    //hittables.push(Sphere(Vec3(0., 1000., 0.), 900., Light(1., 1., 1.)));
+    // hittables.push(Sphere(Vec3(0.9, 0., -1.), 0.5, Metal(1., 1., 1., 0.0)));
+    // hittables.push(Sphere(Vec3(-0.9, 0., -1.), 0.5, Dielectric(1.01)));
+    // hittables.push(Sphere(
+    //     Vec3(0., -0.25, -0.25),
+    //     0.25,
+    //     Lambertian(0.94, 0.2, 0.2),
+    // ));
+    // hittables.push(Sphere(
+    //     Vec3(1.25, -0.25, -0.25),
+    //     0.25,
+    //     Lambertian(0.6, 0.76, 0.73),
+    // ));
+    // hittables.push(Sphere(
+    //     Vec3(-1.25, -0.25, -0.25),
+    //     0.25,
+    //     Lambertian(0.84, 0.55, 0.8),
+    // ));
+    // hittables.push(Sphere(Vec3(-0.5, -0.4, 0.), 0.1, Metal(1., 1., 1., 0.3)));
+    // hittables.push(Sphere(
+    //     Vec3(0.5, -0.4, 0.),
+    //     0.1,
+    //     Metal(0.71, 0.46, 0.16, 0.3),
+    // ));
+
+    for a in -10..11 {
+        for b in -10..11 {
+            if a == -10 && b == -10 {
+                continue;
+            }
+            let choose_mat = random_double();
+            let center = Vec3(
+                a as f64 + random_double() * 0.5,
+                0.3 + random_double() * 1.5,
+                b as f64 + random_double() * 0.5,
+            );
+
+            if choose_mat < 0.7 {
+                hittables.push(Sphere(
+                    center,
+                    0.3 - random_double() * 0.1,
+                    Lambertian(random_double(), random_double(), random_double()),
+                ))
+            } else if choose_mat < 0.8 {
+                hittables.push(Sphere(
+                    center,
+                    0.3 - random_double() * 0.1,
+                    Metal(0.9, 0.9, 0.9, random_double() * 0.3),
+                ))
+            } else if choose_mat < 0.9 {
+                hittables.push(Sphere(center, 0.3, Dielectric(1. + random_double())))
+            } else {
+                hittables.push(Sphere(center + Vec3(0., 20., 0.), 6., Light(1., 1., 1.)));
+            }
+        }
+    }
 
     let world = HittableObjects(hittables);
     //Camera
 
-    let camera = Camera::new(85., aspect_ratio);
+    let camera = Camera::new(
+        Vec3(-11., 1., -11.),
+        Vec3(-5., 1., -5.),
+        Vec3(0., 1., 0.),
+        50.,
+        aspect_ratio,
+    );
 
     //Render
     let mut stdout = stdout();
@@ -190,10 +177,7 @@ fn main() {
         }
     });
 
-    let mut img = RgbImage::new(
-        image_width.try_into().unwrap(),
-        image_height.try_into().unwrap(),
-    );
+    let mut img = RgbImage::new(image_width as u32, image_height as u32);
 
     for (y, x_vec) in pixels.iter().rev().enumerate() {
         for (x, pixel) in x_vec.iter().enumerate() {
@@ -203,48 +187,39 @@ fn main() {
     }
 
     img.save("out.png").unwrap();
-
-    // for j in pixels.iter().rev() {
-    //     for i in j.iter() {
-    //         write_color(i, &mut file, samples_per_pixel)
-    //     }
-    // }
-
-    file.flush().unwrap();
     finished(&mut stdout);
-    stdout.execute(cursor::Show).unwrap();
 }
 
 fn finished(stdout: &mut Stdout) {
     stdout
-        .write_all(format!("{}", "Render saved to out.ppm.".bold().green()).as_bytes())
+        .write_all(format!("{}", "Render saved to out.png.\n".bold().green()).as_bytes())
         .unwrap();
 }
 
-fn progress(stdout: &mut Stdout, current: i32, image_height: i32) {
-    let percentage = current as f64 / image_height as f64;
-    let rgb_value = (percentage * 255.) as u8;
+// fn progress(stdout: &mut Stdout, current: i32, image_height: i32) {
+//     let percentage = current as f64 / image_height as f64;
+//     let rgb_value = (percentage * 255.) as u8;
 
-    let current_color = Color::Rgb {
-        r: rgb_value,
-        g: 255 - rgb_value,
-        b: 0,
-    };
+//     let current_color = Color::Rgb {
+//         r: rgb_value,
+//         g: 255 - rgb_value,
+//         b: 0,
+//     };
 
-    stdout.queue(cursor::SavePosition).unwrap();
-    stdout
-        .write_all(format!("{} ", "Rendering to out.ppm: ".bold().dark_magenta(),).as_bytes())
-        .unwrap();
-    execute!(
-        stdout,
-        SetForegroundColor(current_color),
-        Print(format!("{:.2}", 100. - percentage * 100.))
-    )
-    .unwrap();
+//     stdout.queue(cursor::SavePosition).unwrap();
+//     stdout
+//         .write_all(format!("{} ", "Rendering to out.ppm: ".bold().dark_magenta(),).as_bytes())
+//         .unwrap();
+//     execute!(
+//         stdout,
+//         SetForegroundColor(current_color),
+//         Print(format!("{:.2}", 100. - percentage * 100.))
+//     )
+//     .unwrap();
 
-    stdout.flush().unwrap();
-    stdout.queue(cursor::RestorePosition).unwrap();
-    stdout
-        .queue(terminal::Clear(terminal::ClearType::FromCursorDown))
-        .unwrap();
-}
+//     stdout.flush().unwrap();
+//     stdout.queue(cursor::RestorePosition).unwrap();
+//     stdout
+//         .queue(terminal::Clear(terminal::ClearType::FromCursorDown))
+//         .unwrap();
+// }
