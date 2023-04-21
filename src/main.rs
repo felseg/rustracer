@@ -10,12 +10,12 @@ use crate::hittables::Hittables::*;
 use crate::materials::Material::{Dielectric, Lambertian, Light, Metal};
 use camera::Camera;
 use crossterm::style::Stylize;
-use hittable::{sphere::Sphere, Hit};
+use hittable::Hit;
 use hittables::{hit, Hittables};
 use materials::{color_emitted, scatter};
 use ray::Ray;
 use utils::{clamp, random_double};
-use vec3::Vec3;
+use vec3::{unit_vector, Vec3};
 
 mod camera;
 mod file;
@@ -41,7 +41,12 @@ fn ray_color(ray: &Ray, world: &Hittables, depth: i32) -> Vec3 {
     };
 
     if !hit(world, &ray, 0.001, INFINITY, &mut rec) {
-        return Vec3(0.0, 0.0, 0.0);
+        //todo do da lerp
+        let unit_direction = unit_vector(&ray.dir);
+        let t = 0.5 * (unit_direction.1 * 1.0);
+        return (1.0 - t) * Vec3(0.8, 0.8, 0.8) + t * Vec3(0.2, 0.3, 0.8);
+
+        // return Vec3(0.0, 0.0, 0.0);
     }
 
     let mut scattered = Ray {
@@ -82,13 +87,13 @@ fn main() {
     let aspect_ratio = 16. / 9.;
     let image_width = 1920;
     let image_height = (image_width as f64 / aspect_ratio) as i32;
-    let samples_per_pixel = 200;
-    let max_depth = 25;
+    let samples_per_pixel = 50;
+    let max_depth = 8;
 
     let mut hittables = Vec::new();
 
-    hittables.push(Sphere(Vec3(0., -1000., -1.), 1000., Metal(1., 1., 1., 0.7)));
-    hittables.push(Sphere(Vec3(0., 1000., 0.), 750., Light(1., 1., 1.)));
+    hittables.push(Sphere(Vec3(0., -1000., -1.), 1000., Metal(1., 1., 1., 0.2)));
+    //hittables.push(Sphere(Vec3(0., 1000., 0.), 750., Light(1., 1., 1.)));
     // hittables.push(Sphere(Vec3(0.9, 0., -1.), 0.5, Metal(1., 1., 1., 0.0)));
     // hittables.push(Sphere(Vec3(-0.9, 0., -1.), 0.5, Dielectric(1.01)));
     // hittables.push(Sphere(
@@ -135,10 +140,10 @@ fn main() {
                 hittables.push(Sphere(
                     center,
                     0.3 - random_double() * 0.1,
-                    Metal(0.9, 0.9, 0.9, random_double() * 0.3),
+                    Metal(0.9, 0.9, 0.9, random_double() * 0.1),
                 ))
             } else if choose_mat < 0.9 {
-                hittables.push(Sphere(center, 0.3, Dielectric(1. + random_double())))
+                hittables.push(Sphere(center, 0.3, Dielectric(1.3)))
             } else {
                 //hittables.push(Sphere(center + Vec3(0., 20., 0.), 6., Light(1., 1., 1.)));
             }
