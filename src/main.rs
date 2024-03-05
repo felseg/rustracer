@@ -41,12 +41,7 @@ fn ray_color(ray: &Ray, world: &Hittables, depth: i32) -> Vec3 {
     };
 
     if !hit(world, &ray, 0.001, INFINITY, &mut rec) {
-        //todo do da lerp
-        let unit_direction = unit_vector(&ray.dir);
-        let t = 0.5 * (unit_direction.1 * 1.0);
-        return (1.0 - t) * Vec3(0.8, 0.8, 0.8) + t * Vec3(0.2, 0.3, 0.8);
-
-        // return Vec3(0.0, 0.0, 0.0);
+        return Vec3(0.0, 0.0, 0.0);
     }
 
     let mut scattered = Ray {
