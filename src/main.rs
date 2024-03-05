@@ -87,75 +87,83 @@ fn main() {
     let aspect_ratio = 16. / 9.;
     let image_width = 1920;
     let image_height = (image_width as f64 / aspect_ratio) as i32;
-    let samples_per_pixel = 50;
+    let samples_per_pixel = 16;
     let max_depth = 8;
 
     let mut hittables = Vec::new();
 
-    hittables.push(Sphere(Vec3(0., -1000., -1.), 1000., Metal(1., 1., 1., 0.2)));
-    //hittables.push(Sphere(Vec3(0., 1000., 0.), 750., Light(1., 1., 1.)));
-    // hittables.push(Sphere(Vec3(0.9, 0., -1.), 0.5, Metal(1., 1., 1., 0.0)));
-    // hittables.push(Sphere(Vec3(-0.9, 0., -1.), 0.5, Dielectric(1.01)));
+    hittables.push(Sphere(
+        Vec3(0., -100.5, -1.),
+        100.,
+        Metal(0.8, 0.8, 0.8, 0.2),
+    ));
+    hittables.push(Sphere(Vec3(0.9, 0., -1.), 0.5, Metal(1., 1., 1., 0.0)));
+    hittables.push(Sphere(Vec3(-0.9, 0., -1.), -0.5, Dielectric(2.2)));
+    hittables.push(Sphere(
+        Vec3(0., -0.25, -0.25),
+        0.25,
+        Lambertian(0.94, 0.81, 0.66),
+    ));
+
+    hittables.push(Sphere(
+        Vec3(1.25, -0.25, -0.25),
+        0.25,
+        materials::Material::Lambertian(0.6, 0.76, 0.73),
+    ));
+    hittables.push(Sphere(
+        Vec3(-1.25, -0.25, -0.25),
+        0.25,
+        materials::Material::Lambertian(0.84, 0.55, 0.8),
+    ));
     // hittables.push(Sphere(
-    //     Vec3(0., -0.25, -0.25),
-    //     0.25,
-    //     Lambertian(0.94, 0.2, 0.2),
-    // ));
-    // hittables.push(Sphere(
-    //     Vec3(1.25, -0.25, -0.25),
-    //     0.25,
-    //     Lambertian(0.6, 0.76, 0.73),
-    // ));
-    // hittables.push(Sphere(
-    //     Vec3(-1.25, -0.25, -0.25),
-    //     0.25,
-    //     Lambertian(0.84, 0.55, 0.8),
-    // ));
-    // hittables.push(Sphere(Vec3(-0.5, -0.4, 0.), 0.1, Metal(1., 1., 1., 0.3)));
-    // hittables.push(Sphere(
-    //     Vec3(0.5, -0.4, 0.),
+    //     Vec3(-0.25, -0.25, 0.5),
     //     0.1,
-    //     Metal(0.71, 0.46, 0.16, 0.3),
+    //     materials::Material::Metal(1., 1., 1., 0.3),
+    // ));
+    // hittables.push(Sphere(
+    //     Vec3(0.25, -0.25, 0.5),
+    //     0.1,
+    //     materials::Material::Metal(0.71, 0.46, 0.16, 0.3),
     // ));
 
-    for a in -10..11 {
-        for b in -10..11 {
-            if a == -10 && b == -10 {
-                continue;
-            }
-            let choose_mat = random_double();
-            let center = Vec3(
-                a as f64 + random_double() * 0.5,
-                0.3 + random_double() * 1.5,
-                b as f64 + random_double() * 0.5,
-            );
+    // for a in -10..11 {
+    //     for b in -10..11 {
+    //         if a == -10 && b == -10 {
+    //             continue;
+    //         }
+    //         let choose_mat = random_double();
+    //         let center = Vec3(
+    //             a as f64 + random_double() * 0.5,
+    //             0.3 + random_double() * 1.5,
+    //             b as f64 + random_double() * 0.5,
+    //         );
 
-            if choose_mat < 0.7 {
-                hittables.push(Sphere(
-                    center,
-                    0.3 - random_double() * 0.1,
-                    Lambertian(random_double(), random_double(), random_double()),
-                ))
-            } else if choose_mat < 0.8 {
-                hittables.push(Sphere(
-                    center,
-                    0.3 - random_double() * 0.1,
-                    Metal(0.9, 0.9, 0.9, random_double() * 0.1),
-                ))
-            } else if choose_mat < 0.9 {
-                hittables.push(Sphere(center, 0.3, Dielectric(1.3)))
-            } else {
-                //hittables.push(Sphere(center + Vec3(0., 20., 0.), 6., Light(1., 1., 1.)));
-            }
-        }
-    }
+    //         if choose_mat < 0.7 {
+    //             hittables.push(Sphere(
+    //                 center,
+    //                 0.3 - random_double() * 0.1,
+    //                 Lambertian(random_double(), random_double(), random_double()),
+    //             ))
+    //         } else if choose_mat < 0.8 {
+    //             hittables.push(Sphere(
+    //                 center,
+    //                 0.3 - random_double() * 0.1,
+    //                 Metal(0.9, 0.9, 0.9, random_double() * 0.1),
+    //             ))
+    //         } else if choose_mat < 0.9 {
+    //             hittables.push(Sphere(center, 0.3, Dielectric(1.3)))
+    //         } else {
+    //             //hittables.push(Sphere(center + Vec3(0., 20., 0.), 6., Light(1., 1., 1.)));
+    //         }
+    //     }
+    // }
 
     let world = HittableObjects(hittables);
     //Camera
 
     let camera = Camera::new(
-        Vec3(-11., 1.5, -11.),
-        Vec3(-5., 1., -5.),
+        Vec3(0., 0.2, 2.),
+        Vec3(0., 0., 0.),
         Vec3(0., 1., 0.),
         50.,
         aspect_ratio,
