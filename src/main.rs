@@ -7,7 +7,7 @@ use image::{Rgb, RgbImage};
 use rayon::prelude::*;
 
 use crate::hittables::Hittables::*;
-use crate::materials::Material::{Dielectric, Lambertian, Light, Metal};
+use crate::materials::Material::{Dielectric, Lambertian, Metal};
 use camera::Camera;
 use crossterm::style::Stylize;
 use hittable::Hit;
@@ -15,7 +15,7 @@ use hittables::{hit, Hittables};
 use materials::{color_emitted, scatter};
 use ray::Ray;
 use utils::{clamp, random_double};
-use vec3::{unit_vector, Vec3};
+use vec3::Vec3;
 
 mod camera;
 mod file;
